@@ -108,7 +108,7 @@ class DetektIntegrationTest {
     @Test
     void shouldNotFailBuildWhenNoDetektWarningsOrErrorsEncounteredAndNoThresholdTrespassed() {
         def testProject = projectRule.newProject()
-                .withPlugin('io.gitlab.arturbosch.detekt', '1.0.0.RC6-3')
+                .withPlugin('io.gitlab.arturbosch.detekt', detektVersion)
                 .withPenalty('''{
                     maxWarnings = 0
                     maxErrors = 0

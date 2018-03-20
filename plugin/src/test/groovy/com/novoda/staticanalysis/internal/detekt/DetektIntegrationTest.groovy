@@ -16,16 +16,27 @@ class DetektIntegrationTest {
     private static final String DETEKT_NOT_APPLIED = 'The Detekt plugin is configured but not applied. Please apply the plugin in your build script.'
     private static final String OUTPUT_NOT_DEFINED = 'Output not defined! To analyze the results, `output` needs to be defined in Detekt profile.'
 
-    @Parameterized.Parameters(name = "{0}")
-    static Iterable<TestProjectRule> rules() {
-        return [TestProjectRule.forKotlinProject(), TestProjectRule.forAndroidKotlinProject()]
+    private static final String DETEKT_VERSION_RC6_3 = '1.0.0.RC6-3'
+    private static final String DETEKT_VERSION_RC6_4 = '1.0.0.RC6-4'
+
+    @Parameterized.Parameters(name = "{0} — Detekt {1}")
+    static rules() {
+        [
+                [TestProjectRule.forKotlinProject(), DETEKT_VERSION_RC6_3],
+                [TestProjectRule.forKotlinProject(), DETEKT_VERSION_RC6_4],
+                [TestProjectRule.forAndroidKotlinProject(), DETEKT_VERSION_RC6_3],
+                [TestProjectRule.forAndroidKotlinProject(), DETEKT_VERSION_RC6_4]
+        ]*.toArray()
     }
 
     @Rule
     public final TestProjectRule projectRule
 
-    DetektIntegrationTest(TestProjectRule projectRule) {
+    private final String detektVersion
+
+    DetektIntegrationTest(TestProjectRule projectRule, String detektVersion) {
         this.projectRule = projectRule
+        this.detektVersion = detektVersion
     }
 
     @Test
@@ -97,7 +108,7 @@ class DetektIntegrationTest {
     @Test
     void shouldNotFailBuildWhenNoDetektWarningsOrErrorsEncounteredAndNoThresholdTrespassed() {
         def testProject = projectRule.newProject()
-                .withPlugin("io.gitlab.arturbosch.detekt", "1.0.0.RC6-2")
+                .withPlugin('io.gitlab.arturbosch.detekt', '1.0.0.RC6-3')
                 .withPenalty('''{
                     maxWarnings = 0
                     maxErrors = 0
@@ -117,7 +128,7 @@ class DetektIntegrationTest {
 
     private TestProject createProjectWith(File sources, int maxWarnings = 0, int maxErrors = 0) {
         projectRule.newProject()
-                .withPlugin("io.gitlab.arturbosch.detekt", "1.0.0.RC6-2")
+                .withPlugin('io.gitlab.arturbosch.detekt', detektVersion)
                 .withSourceSet('main', sources)
                 .withPenalty("""{
                     maxWarnings = ${maxWarnings}

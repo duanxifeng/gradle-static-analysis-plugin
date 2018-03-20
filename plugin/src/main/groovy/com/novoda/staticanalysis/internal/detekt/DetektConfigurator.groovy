@@ -57,13 +57,23 @@ class DetektConfigurator implements Configurator {
         project.tasks['check'].dependsOn(detektTask)
 
         // evaluate violations after detekt
-        def output = detekt.systemOrDefaultProfile().output
+        def output = getSystemOrDefaultProfile(detekt).output
         if (!output) {
             throw new IllegalArgumentException(OUTPUT_NOT_DEFINED)
         }
         def collectViolations = createCollectViolationsTask(violations, project.file(output))
         evaluateViolations.dependsOn collectViolations
         collectViolations.dependsOn detektTask
+    }
+
+    private def getSystemOrDefaultProfile(def detektExtension) {
+        try {
+            // For Detekt 1.0.0-RC3 and lower
+            return detektExtension.systemOrDefaultProfile()
+        } catch (RuntimeException ignored) {
+            // For Detekt 1.0.0-RC4 and higher
+            return io.gitlab.arturbosch.detekt.extensions.ProfileStorageKt.systemOrDefault
+        }
     }
 
     private CollectDetektViolationsTask createCollectViolationsTask(Violations violations, File outputFolder) {

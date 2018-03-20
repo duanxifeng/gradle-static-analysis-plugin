@@ -29,7 +29,7 @@ class DetektIntegrationTest {
     }
 
     @Test
-    void shouldFailBuildOnConfigurationWhenNoOutputNotDefined() {
+    void shouldFailBuildOnConfigurationWhenNoOutputIsDefined() {
         def emptyConfiguration = detektWith("")
 
         def result = createProjectWithZeroThreshold(Fixtures.Detekt.SOURCES_WITH_WARNINGS)
@@ -128,7 +128,6 @@ class DetektIntegrationTest {
 
     private TestProject createProjectWithoutDetekt() {
         projectRule.newProject()
-                .withPlugin("io.gitlab.arturbosch.detekt", "1.0.0.RC6-2")
                 .withSourceSet('main', Fixtures.Detekt.SOURCES_WITH_WARNINGS)
                 .withPenalty('''{
                     maxWarnings = 0

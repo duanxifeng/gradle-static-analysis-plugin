@@ -33,19 +33,13 @@ class DetektConfigurator implements Configurator {
 
     @Override
     void execute() {
-        project.extensions.findByType(StaticAnalysisExtension).ext.detekt = { Closure config ->
-            if (!isKotlinProject(project)) {
-                return
+        project.plugins.withId(DETEKT_PLUGIN) {
+            project.extensions.findByType(StaticAnalysisExtension).ext.detekt = { Closure config ->
+                def detektExtension = project.extensions.findByName('detekt')
+                config.delegate = detektExtension
+                config()
+                configureToolTask(detektExtension)
             }
-
-            if (!project.plugins.hasPlugin(DETEKT_PLUGIN)) {
-                throw new GradleException(DETEKT_NOT_APPLIED)
-            }
-
-            def detekt = project.extensions.findByName('detekt')
-            config.delegate = detekt
-            config()
-            configureToolTask(detekt)
         }
     }
 

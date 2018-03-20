@@ -48,12 +48,12 @@ ${project.additionalConfiguration}
         Collections.emptyList()
     }
 
-    public T withFile(File source, String path) {
+    T withFile(File source, String path) {
         write(source.text, path)
         return this
     }
 
-    public T withFile(String text, String path) {
+    T withFile(String text, String path) {
         write(text, path)
         return this
     }
@@ -64,33 +64,33 @@ ${project.additionalConfiguration}
         file.text = text
     }
 
-    public T withSourceSet(String sourceSet, File... srcDirs) {
+    T withSourceSet(String sourceSet, File... srcDirs) {
         sourceSets[sourceSet] = srcDirs
         return this
     }
 
-    public T withPenalty(String penalty) {
+    T withPenalty(String penalty) {
         this.penalty = "penalty $penalty"
         return this
     }
 
-    public T withToolsConfig(String toolsConfig) {
+    T withToolsConfig(String toolsConfig) {
         this.toolsConfig = toolsConfig
         return this
     }
 
-    public T withAdditionalConfiguration(String additionalConfiguration) {
+    T withAdditionalConfiguration(String additionalConfiguration) {
         this.additionalConfiguration = additionalConfiguration
         return this
     }
 
-    public T withPlugin(String plugin, String version = null) {
+    T withPlugin(String plugin, String version = null) {
         this.plugins.add("id '$plugin' ${version ? "version '$version'" : ""}")
         return this
     }
 
 
-    public Result build(String... arguments) {
+    Result build(String... arguments) {
         BuildResult buildResult = newRunner(arguments).build()
         createResult(buildResult)
     }
@@ -108,12 +108,12 @@ ${project.additionalConfiguration}
         new Result(buildResult, new File(projectDir, 'build'))
     }
 
-    public Result buildAndFail(String... arguments) {
+    Result buildAndFail(String... arguments) {
         BuildResult buildResult = newRunner(arguments).buildAndFail()
         createResult(buildResult)
     }
 
-    public void deleteDir() {
+    void deleteDir() {
         projectDir.deleteDir()
     }
 
@@ -129,7 +129,7 @@ ${project.additionalConfiguration}
         "${project.plugins.join('\n')}"
     }
 
-    public static class Result {
+    static class Result {
         private final BuildResult buildResult
         private final File buildDir
 
@@ -155,7 +155,7 @@ ${project.additionalConfiguration}
             buildResult.task(taskPath).outcome
         }
 
-        public static class Logs {
+        static class Logs {
             final String output
 
             Logs(String output) {

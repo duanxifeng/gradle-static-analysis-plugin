@@ -13,11 +13,12 @@ import static com.novoda.test.LogsSubject.assertThat
 @RunWith(Parameterized.class)
 class DetektIntegrationTest {
 
-    private static final String DETEKT_NOT_APPLIED = 'The Detekt plugin is configured but not applied. Please apply the plugin in your build script.'
     private static final String OUTPUT_NOT_DEFINED = 'Output not defined! To analyze the results, `output` needs to be defined in Detekt profile.'
 
     private static final String DETEKT_VERSION_RC6_3 = '1.0.0.RC6-3'
     private static final String DETEKT_VERSION_RC6_4 = '1.0.0.RC6-4'
+    private static final File NO_INPUTS = Fixtures.Detekt.RULES.parentFile  // A folder that contains no .kt files (Detekt ignores sourcesets)
+
 
     @Parameterized.Parameters(name = "{0} — Detekt {1}")
     static rules() {
@@ -41,22 +42,11 @@ class DetektIntegrationTest {
 
     @Test
     void shouldFailBuildOnConfigurationWhenNoOutputIsDefined() {
-        def emptyConfiguration = detektWith("")
-
         def result = createProjectWithZeroThreshold(Fixtures.Detekt.SOURCES_WITH_WARNINGS)
-                .withToolsConfig(emptyConfiguration)
+                .withToolsConfig(detektConfigurationWithoutOutput())
                 .buildAndFail('check')
 
         assertThat(result.logs).contains(OUTPUT_NOT_DEFINED)
-    }
-
-    @Test
-    void shouldFailBuildOnConfigurationWhenDetektConfiguredButNotApplied() {
-        def result = projectRule.newProject()
-                .withToolsConfig(detektConfiguration(Fixtures.Detekt.SOURCES_WITH_ERRORS))
-                .buildAndFail('check')
-
-        assertThat(result.logs).contains(DETEKT_NOT_APPLIED)
     }
 
     @Test
@@ -131,8 +121,8 @@ class DetektIntegrationTest {
                 .withPlugin('io.gitlab.arturbosch.detekt', detektVersion)
                 .withSourceSet('main', sources)
                 .withPenalty("""{
-                    maxWarnings = ${maxWarnings}
-                    maxErrors = ${maxErrors}
+                    maxWarnings = $maxWarnings
+                    maxErrors = $maxErrors
                 }""")
                 .withToolsConfig(detektConfiguration(sources))
     }
@@ -148,19 +138,27 @@ class DetektIntegrationTest {
 
     private static String detektConfiguration(File input) {
         detektWith """
-            config = '${Fixtures.Detekt.RULES}' 
+            config = '$Fixtures.Detekt.RULES' 
             output = "\$buildDir/reports"
             // The input just needs to be configured for the tests. 
             // Probably detekt doesn't pick up the changed source sets. 
             // In a example project it was not needed.
-            input = "${input}"
+            input = "$input"
         """
     }
 
     private static String detektConfigurationWithoutInput() {
         detektWith """
-            config = '${Fixtures.Detekt.RULES}' 
+            config = '$Fixtures.Detekt.RULES' 
             output = "\$buildDir/reports"
+            input = '$NO_INPUTS'
+        """
+    }
+
+    private static String detektConfigurationWithoutOutput() {
+        detektWith """
+            config = '$Fixtures.Detekt.RULES'
+            input = '$Fixtures.Detekt.SOURCES_WITH_ERRORS'
         """
     }
 

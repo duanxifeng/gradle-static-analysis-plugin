@@ -3,7 +3,7 @@ package com.novoda.staticanalysis.internal.detekt
 import com.novoda.staticanalysis.StaticAnalysisExtension
 import com.novoda.staticanalysis.Violations
 import com.novoda.staticanalysis.internal.Configurator
-import org.gradle.api.GradleException
+import io.gitlab.arturbosch.detekt.extensions.ProfileStorage
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -11,7 +11,6 @@ import org.gradle.api.Task
 class DetektConfigurator implements Configurator {
 
     private static final String DETEKT_PLUGIN = 'io.gitlab.arturbosch.detekt'
-    private static final String DETEKT_NOT_APPLIED = 'The Detekt plugin is configured but not applied. Please apply the plugin in your build script.\nFor more information see https://github.com/arturbosch/detekt.'
     private static final String OUTPUT_NOT_DEFINED = 'Output not defined! To analyze the results, `output` needs to be defined in Detekt profile.'
 
     private final Project project
@@ -43,7 +42,7 @@ class DetektConfigurator implements Configurator {
         }
     }
 
-    private void configureToolTask(detekt) {
+    private void configureToolTask(detektExtension) {
         def detektTask = project.tasks['detektCheck']
         detektTask.group = 'verification'
 
@@ -51,8 +50,8 @@ class DetektConfigurator implements Configurator {
         project.tasks['check'].dependsOn(detektTask)
 
         // evaluate violations after detekt
-        def output = getSystemOrDefaultProfile(detekt).output
-        if (!output) {
+        def output = getSystemOrDefaultProfile(detektExtension).output
+        if (output == null) {
             throw new IllegalArgumentException(OUTPUT_NOT_DEFINED)
         }
         def collectViolations = createCollectViolationsTask(violations, project.file(output))
@@ -60,13 +59,13 @@ class DetektConfigurator implements Configurator {
         collectViolations.dependsOn detektTask
     }
 
-    private def getSystemOrDefaultProfile(def detektExtension) {
+    private static def getSystemOrDefaultProfile(def detektExtension) {
         try {
             // For Detekt 1.0.0-RC3 and lower
             return detektExtension.systemOrDefaultProfile()
         } catch (RuntimeException ignored) {
             // For Detekt 1.0.0-RC4 and higher
-            return io.gitlab.arturbosch.detekt.extensions.ProfileStorageKt.systemOrDefault
+            return ProfileStorage.INSTANCE.getSystemOrDefault()
         }
     }
 
@@ -76,14 +75,5 @@ class DetektConfigurator implements Configurator {
             task.htmlReportFile = new File(outputFolder, 'detekt-report.html')
             task.violations = violations
         }
-    }
-
-    private static boolean isKotlinProject(final Project project) {
-        final boolean isKotlin = project.plugins.hasPlugin('kotlin')
-        final boolean isKotlinAndroid = project.plugins.hasPlugin('kotlin-android')
-        final boolean isKotlinPlatformCommon = project.plugins.hasPlugin('kotlin-platform-common')
-        final boolean isKotlinPlatformJvm = project.plugins.hasPlugin('kotlin-platform-jvm')
-        final boolean isKotlinPlatformJs = project.plugins.hasPlugin('kotlin-platform-js')
-        return isKotlin || isKotlinAndroid || isKotlinPlatformCommon || isKotlinPlatformJvm || isKotlinPlatformJs
     }
 }

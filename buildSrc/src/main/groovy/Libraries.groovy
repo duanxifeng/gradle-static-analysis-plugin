@@ -6,6 +6,7 @@ class Libraries {
     final guava = 'com.google.guava:guava:19.0'
     final mockito = 'org.mockito:mockito-core:2.13.0'
     final findbugs = new Findbugs()
+    final detektPlugin = 'io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.0.0.RC6-4'
 
     private final Project project
 
